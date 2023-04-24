@@ -1,4 +1,5 @@
-﻿using WebAPIAutores.Validations;
+﻿using System.ComponentModel.DataAnnotations;
+using WebAPIAutores.Validations;
 
 namespace WebAPIAutores.Entities
 {
@@ -6,6 +7,7 @@ namespace WebAPIAutores.Entities
     {
         public int Id { get; set; }
         [FirstCapitalLetter]
+        [StringLength(250)]
         public string Title { get; set; }
     }
 }
