@@ -10,5 +10,7 @@ public class AutoMapperProfile : Profile
     {
         CreateMap<CreateAuthorDto, Author>();
         CreateMap<Author, GetAuthorDto>();
+        CreateMap<CreateBookDto, Book>();
+        CreateMap<Book, GetBookDto>();
     }
 }
