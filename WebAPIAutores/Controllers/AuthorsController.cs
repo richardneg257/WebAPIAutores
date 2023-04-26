@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebAPIAutores.Dtos;
 using WebAPIAutores.Entities;
 
 namespace WebAPIAutores.Controllers
@@ -9,44 +11,46 @@ namespace WebAPIAutores.Controllers
     public class AuthorsController: ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public AuthorsController(ApplicationDbContext context)
+        public AuthorsController(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<List<Author>> Get()
+        public async Task<List<GetAuthorDto>> Get()
         {
-            return await _context.Authors.ToListAsync();
+            var authors = await _context.Authors.ToListAsync();
+            return _mapper.Map<List<GetAuthorDto>>(authors);
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<Author>> Get([FromRoute] int id)
+        public async Task<ActionResult<GetAuthorDto>> Get([FromRoute] int id)
         {
             var author = await _context.Authors.FirstOrDefaultAsync(x => x.Id == id);
 
-            if (author == null) return NotFound();
+            if (author is null) return NotFound();
 
-            return author;
+            return _mapper.Map<GetAuthorDto>(author);
         }
 
-        [HttpGet("{nombre}")]
-        public async Task<ActionResult<Author>> Get([FromRoute] string name)
+        [HttpGet("{name}")]
+        public async Task<ActionResult<List<GetAuthorDto>>> Get([FromRoute] string name)
         {
-            var author = await _context.Authors.FirstOrDefaultAsync(x => x.Name.Contains(name));
-
-            if (author == null) return NotFound();
-
-            return author;
+            var authors = await _context.Authors.Where(x => x.Name.Contains(name)).ToListAsync();
+            return _mapper.Map<List<GetAuthorDto>>(authors);
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody] Author author)
+        public async Task<ActionResult> Post([FromBody] CreateAuthorDto createAuthorDto)
         {
-            var existAuthorWithTheSameName = await _context.Authors.AnyAsync(x => x.Name == author.Name);
+            var existAuthorWithTheSameName = await _context.Authors.AnyAsync(x => x.Name == createAuthorDto.Name);
 
-            if (existAuthorWithTheSameName) return BadRequest($"There is already an author with the name {author.Name}");
+            if (existAuthorWithTheSameName) return BadRequest($"There is already an author with the name {createAuthorDto.Name}");
+
+            var author = _mapper.Map<Author>(createAuthorDto);
 
             _context.Add(author);
             await _context.SaveChangesAsync();
