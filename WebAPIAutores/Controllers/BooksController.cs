@@ -30,7 +30,18 @@ namespace WebAPIAutores.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(CreateBookDto createBookDto)
         {
+            if (createBookDto.AuthorsIds is null) return BadRequest("No se puede crear un libro sin autores");
+
+            var authorsIds = await _context.Authors.Where(x => createBookDto.AuthorsIds.Contains(x.Id)).Select(x => x.Id).ToListAsync();
+            if (createBookDto.AuthorsIds.Count != authorsIds.Count) return BadRequest("No existe uno de los autores enviados");
+
             var book = _mapper.Map<Book>(createBookDto);
+
+            for(int i = 0; i < book.AuthorsBooks.Count; i++)
+            {
+                book.AuthorsBooks[i].Orden = i;
+            }
+
             _context.Add(book);
             await _context.SaveChangesAsync();
             return Ok();
