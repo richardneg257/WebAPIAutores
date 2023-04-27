@@ -22,8 +22,10 @@ namespace WebAPIAutores.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<GetBookDto>> Get([FromRoute] int id)
         {
-            var book = await _context.Books.FirstOrDefaultAsync(x => x.Id == id);
+            var book = await _context.Books.Include(x => x.AuthorsBooks).ThenInclude(x => x.Author).FirstOrDefaultAsync(x => x.Id == id);
             if (book is null) return NotFound();
+
+            book.AuthorsBooks = book.AuthorsBooks.OrderBy(x => x.Orden).ToList();
             return _mapper.Map<GetBookDto>(book);
         }
 

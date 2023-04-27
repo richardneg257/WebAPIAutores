@@ -12,7 +12,8 @@ public class AutoMapperProfile : Profile
         CreateMap<Author, GetAuthorDto>();
         CreateMap<CreateBookDto, Book>()
             .ForMember(x => x.AuthorsBooks, opts => opts.MapFrom(MapAuthorsBooks));
-        CreateMap<Book, GetBookDto>();
+        CreateMap<Book, GetBookDto>()
+            .ForMember(x => x.Authors, opts => opts.MapFrom(MapGetBookDtoAuthors));
         CreateMap<CreateCommentDto, Comment>();
         CreateMap<Comment, GetCommentDto>();
     }
@@ -27,6 +28,22 @@ public class AutoMapperProfile : Profile
             result.Add(new AuthorBook { AuthorId = authorId });
         }
 
+        return result;
+    }
+
+    private List<GetAuthorDto> MapGetBookDtoAuthors(Book book, GetBookDto getBookDto)
+    {
+        var result = new List<GetAuthorDto>();
+        if (book.AuthorsBooks is null) return result;
+
+        foreach(var authorBook in book.AuthorsBooks)
+        {
+            result.Add(new GetAuthorDto()
+            {
+                Id = authorBook.AuthorId,
+                Name = authorBook.Author.Name
+            });
+        }
         return result;
     }
 }
