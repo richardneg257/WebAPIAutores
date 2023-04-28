@@ -87,6 +87,18 @@ namespace WebAPIAutores.Controllers
             return NoContent();
         }
 
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult> Delete([FromRoute] int id)
+        {
+            var exist = await _context.Books.AnyAsync(x => x.Id == id);
+
+            if (!exist) return NotFound();
+
+            _context.Remove(new Book() { Id = id });
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
         private void AssignOrderOfAuthors(Book book)
         {
             if(book.AuthorsBooks is not null)

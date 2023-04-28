@@ -61,7 +61,7 @@ namespace WebAPIAutores.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(CreateAuthorDto authorCreation, int id)
+        public async Task<ActionResult> Put([FromBody] CreateAuthorDto authorCreation, [FromRoute] int id)
         {
             var exist = await _context.Authors.AnyAsync(x => x.Id == id);
 
@@ -77,7 +77,7 @@ namespace WebAPIAutores.Controllers
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult> Delete([FromRoute] int id)
         {
             var exist = await _context.Authors.AnyAsync(x => x.Id == id);
 
@@ -87,6 +87,5 @@ namespace WebAPIAutores.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
-
     }
 }
