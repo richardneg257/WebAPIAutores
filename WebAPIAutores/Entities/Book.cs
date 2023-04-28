@@ -10,6 +10,7 @@ namespace WebAPIAutores.Entities
         [FirstCapitalLetter]
         [StringLength(250)]
         public string Title { get; set; }
+        public DateTime? PublicationDate { get; set; }
         public List<Comment> Comments { get; set; }
         public List<AuthorBook> AuthorsBooks { get; set; }
     }

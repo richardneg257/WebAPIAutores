@@ -3,12 +3,11 @@ using WebAPIAutores.Validations;
 
 namespace WebAPIAutores.Dtos;
 
-public class CreateBookDto
+public class PatchBookDto
 {
     [Required]
     [FirstCapitalLetter]
     [StringLength(250)]
     public string Title { get; set; }
     public DateTime PublicationDate { get; set; }
-    public List<int> AuthorsIds { get; set; }
 }

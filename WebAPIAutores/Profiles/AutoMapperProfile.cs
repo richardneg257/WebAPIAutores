@@ -19,6 +19,7 @@ public class AutoMapperProfile : Profile
             .ForMember(x => x.Authors, opts => opts.MapFrom(MapGetBookDtoAuthors));
         CreateMap<CreateCommentDto, Comment>();
         CreateMap<Comment, GetCommentDto>();
+        CreateMap<PatchBookDto, Book>().ReverseMap();
     }
 
     private List<AuthorBook> MapAuthorsBooks(CreateBookDto createBookDto, Book book)
