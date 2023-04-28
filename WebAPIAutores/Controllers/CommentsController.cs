@@ -28,6 +28,15 @@ public class CommentsController : ControllerBase
         return _mapper.Map<List<GetCommentDto>>(comments);
     }
 
+    [HttpGet("{id:int}", Name = "GetComment")]
+    public async Task<ActionResult<GetCommentDto>> GetById([FromRoute] int id)
+    {
+        var comment = await _context.Comments.FirstOrDefaultAsync(x => x.Id == id);
+        if (comment is null) return NotFound();
+
+        return _mapper.Map<GetCommentDto>(comment);
+    }
+
     [HttpPost]
     public async Task<ActionResult> Post([FromRoute] int bookId, CreateCommentDto createCommentDto)
     {
@@ -39,6 +48,9 @@ public class CommentsController : ControllerBase
 
         _context.Add(comment);
         await _context.SaveChangesAsync();
-        return Ok();
+
+        var commentDto = _mapper.Map<GetCommentDto>(comment);
+
+        return CreatedAtRoute("GetComment", new { id = comment.Id, bookId = bookId }, commentDto);
     }
 }

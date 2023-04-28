@@ -19,7 +19,7 @@ namespace WebAPIAutores.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int}", Name = "GetBook")]
         public async Task<ActionResult<GetBookDtoWithAuthors>> Get([FromRoute] int id)
         {
             var book = await _context.Books.Include(x => x.AuthorsBooks).ThenInclude(x => x.Author).FirstOrDefaultAsync(x => x.Id == id);
@@ -46,7 +46,10 @@ namespace WebAPIAutores.Controllers
 
             _context.Add(book);
             await _context.SaveChangesAsync();
-            return Ok();
+
+            var bookDto = _mapper.Map<GetBookDto>(book);
+
+            return CreatedAtRoute("GetBook", new { id = book.Id }, bookDto);
         }
     }
 }
