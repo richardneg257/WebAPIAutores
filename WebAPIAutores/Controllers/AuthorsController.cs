@@ -27,13 +27,13 @@ namespace WebAPIAutores.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<GetAuthorDto>> Get([FromRoute] int id)
+        public async Task<ActionResult<GetAuthorDtoWithBooks>> Get([FromRoute] int id)
         {
-            var author = await _context.Authors.FirstOrDefaultAsync(x => x.Id == id);
+            var author = await _context.Authors.Include(x => x.AuthorsBooks).ThenInclude(x => x.Book).FirstOrDefaultAsync(x => x.Id == id);
 
             if (author is null) return NotFound();
 
-            return _mapper.Map<GetAuthorDto>(author);
+            return _mapper.Map<GetAuthorDtoWithBooks>(author);
         }
 
         [HttpGet("{name}")]
