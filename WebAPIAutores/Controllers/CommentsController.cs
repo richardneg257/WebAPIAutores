@@ -53,4 +53,23 @@ public class CommentsController : ControllerBase
 
         return CreatedAtRoute("GetComment", new { id = comment.Id, bookId = bookId }, commentDto);
     }
+
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult> Put([FromRoute] int bookId, [FromRoute] int id, CreateCommentDto createCommentDto)
+    {
+        var existBook = await _context.Books.AnyAsync(x => x.Id == bookId);
+        if (!existBook) return NotFound();
+
+        var existComment = await _context.Comments.AnyAsync(x => x.Id == bookId);
+        if (!existComment) return NotFound();
+
+        var comment = _mapper.Map<Comment>(createCommentDto);
+        comment.Id = id;
+        comment.BookId = bookId;
+
+        _context.Update(comment);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
