@@ -36,7 +36,7 @@ public class AccountsController : ControllerBase
         var result = await _userManager.CreateAsync(user, userCredentials.Password);
         if (!result.Succeeded) return BadRequest(result.Errors);
 
-        return BuildToken(userCredentials);
+        return await BuildToken(userCredentials);
     }
 
     [HttpPost("login")]
@@ -45,12 +45,12 @@ public class AccountsController : ControllerBase
         var result = await _signInManager.PasswordSignInAsync(userCredentials.Email, userCredentials.Password, isPersistent: false, lockoutOnFailure: false);
         if (!result.Succeeded) return BadRequest("Login Incorrecto");
 
-        return BuildToken(userCredentials);
+        return await BuildToken(userCredentials);
     }
 
     [HttpGet("renew-token")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    public ActionResult<AuthenticationResponseDto> Renew()
+    public async Task<ActionResult<AuthenticationResponseDto>> Renew()
     {
         var emailClaim = HttpContext.User.Claims.FirstOrDefault(x => x.Type == "email");
         var email = emailClaim.Value;
@@ -60,16 +60,39 @@ public class AccountsController : ControllerBase
             Email = email,
         };
 
-        return BuildToken(userCredentials);
+        return await BuildToken(userCredentials);
     }
 
-    private AuthenticationResponseDto BuildToken(UserCredentialsDto userCredentials)
+    [HttpPost("do-admin")]
+    public async Task<ActionResult> DoAdmin([FromBody] EditAdminDto editAdminDto)
+    {
+        var user = await _userManager.FindByEmailAsync(editAdminDto.Email);
+        await _userManager.AddClaimAsync(user, new Claim("IsAdmin", "1"));
+
+        return NoContent();
+    }
+
+    [HttpPost("remove-admin")]
+    public async Task<ActionResult> RemoveAdmin([FromBody] EditAdminDto editAdminDto)
+    {
+        var user = await _userManager.FindByEmailAsync(editAdminDto.Email);
+        await _userManager.RemoveClaimAsync(user, new Claim("IsAdmin", "1"));
+
+        return NoContent();
+    }
+
+    private async Task<AuthenticationResponseDto> BuildToken(UserCredentialsDto userCredentials)
     {
         var claims = new List<Claim>()
         {
             new Claim("email", userCredentials.Email),
             new Claim("lo que yo quiera", "cualquier otro valor")
         };
+
+        var user = await _userManager.FindByEmailAsync(userCredentials.Email);
+        var claimsDb = await _userManager.GetClaimsAsync(user);
+
+        claims.AddRange(claimsDb);
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetValue<string>("JwtKey")));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
