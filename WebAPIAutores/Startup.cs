@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json.Serialization;
 using WebAPIAutores.Filters;
+using WebAPIAutores.Services;
 
 namespace WebAPIAutores
 {
@@ -91,6 +92,7 @@ namespace WebAPIAutores
             });
 
             services.AddDataProtection();
+            services.AddTransient<HashService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

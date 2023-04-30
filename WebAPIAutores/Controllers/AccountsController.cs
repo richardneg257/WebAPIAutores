@@ -8,6 +8,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using WebAPIAutores.Dtos;
+using WebAPIAutores.Services;
 
 namespace WebAPIAutores.Controllers;
 [Route("api/[controller]")]
@@ -17,14 +18,34 @@ public class AccountsController : ControllerBase
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly IConfiguration _configuration;
+    private readonly HashService _hashService;
     private readonly IDataProtector _dataProtector;
 
-    public AccountsController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IConfiguration configuration, IDataProtectionProvider dataProtectionProvider)
+    public AccountsController(UserManager<IdentityUser> userManager,
+        SignInManager<IdentityUser> signInManager,
+        IConfiguration configuration,
+        IDataProtectionProvider dataProtectionProvider,
+        HashService hashService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _configuration = configuration;
+        _hashService = hashService;
         _dataProtector = dataProtectionProvider.CreateProtector("valor_unico_y_quizas_secreto");
+    }
+
+    [HttpGet("hash/{planeText}")]
+    public ActionResult DoHash([FromRoute] string planeText)
+    {
+        var result1 = _hashService.Hash(planeText);
+        var result2 = _hashService.Hash(planeText);
+
+        return Ok(new
+        {
+            planeText,
+            result1,
+            result2
+        });
     }
 
     [HttpGet("encrypt")]
