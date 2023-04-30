@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -16,12 +17,45 @@ public class AccountsController : ControllerBase
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly IConfiguration _configuration;
+    private readonly IDataProtector _dataProtector;
 
-    public AccountsController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IConfiguration configuration)
+    public AccountsController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, IConfiguration configuration, IDataProtectionProvider dataProtectionProvider)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _configuration = configuration;
+        _dataProtector = dataProtectionProvider.CreateProtector("valor_unico_y_quizas_secreto");
+    }
+
+    [HttpGet("encrypt")]
+    public ActionResult Encrypt()
+    {
+        var textoPlano = "Richard Negrón";
+        var textoCifrado = _dataProtector.Protect(textoPlano);
+        var textoDesencriptado = _dataProtector.Unprotect(textoCifrado);
+        return Ok(new
+        {
+            textoPlano,
+            textoCifrado,
+            textoDesencriptado
+        });
+    }
+
+    [HttpGet("encrypt-by-time")]
+    public ActionResult EncryptByTime()
+    {
+        var protectorLimitadoPorTiempo = _dataProtector.ToTimeLimitedDataProtector();
+
+        var textoPlano = "Richard Negrón";
+        var textoCifrado = protectorLimitadoPorTiempo.Protect(textoPlano, lifetime: TimeSpan.FromSeconds(5));
+        Thread.Sleep(6000);
+        var textoDesencriptado = protectorLimitadoPorTiempo.Unprotect(textoCifrado);
+        return Ok(new
+        {
+            textoPlano,
+            textoCifrado,
+            textoDesencriptado
+        });
     }
 
     [HttpPost("register")]
